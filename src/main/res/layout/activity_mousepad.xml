@@ -52,6 +52,15 @@ SPDX-License-Identifier: GPL-2.0-only OR GPL-3.0-only OR LicenseRef-KDE-Accepted
                 android:layout_alignParentBottom="true">
 
             <com.google.android.material.button.MaterialButton
+                    android:id="@+id/browser_back"
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:contentDescription="@string/browser_back"
+                    android:layout_weight="1"
+                    app:icon="@drawable/ic_arrow_back_black_24dp"
+                    style="@style/KdeConnectButton.IconButton.Secondary" />
+
+            <com.google.android.material.button.MaterialButton
                     android:id="@+id/mouse_click_left"
                     android:layout_width="wrap_content"
                     android:layout_height="match_parent"
@@ -76,6 +85,15 @@ SPDX-License-Identifier: GPL-2.0-only OR GPL-3.0-only OR LicenseRef-KDE-Accepted
                     android:layout_weight="3"
                     app:icon="@drawable/right_click_48dp"
                     style="@style/KdeConnectButton.IconButton" />
+
+            <com.google.android.material.button.MaterialButton
+                    android:id="@+id/browser_forward"
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:contentDescription="@string/browser_forward"
+                    android:layout_weight="1"
+                    app:icon="@drawable/ic_arrow_forward_black_24dp"
+                    style="@style/KdeConnectButton.IconButton.Secondary" />
 
         </LinearLayout>
     </RelativeLayout>

@@ -141,6 +141,8 @@ class MousePadActivity :
         binding.mouseClickLeft.setOnClickListener { sendLeftClick() }
         binding.mouseClickMiddle.setOnClickListener { sendMiddleClick() }
         binding.mouseClickRight.setOnClickListener { sendRightClick() }
+        binding.browserBack.setOnClickListener { sendBrowserBack() }
+        binding.browserForward.setOnClickListener { sendBrowserForward() }
 
         deviceId = intent.getStringExtra(EXTRA_DEVICE_ID) ?: ""
         if (deviceId.isEmpty()) {
@@ -510,6 +512,24 @@ class MousePadActivity :
             return
         }
         plugin.sendMiddleClick()
+    }
+
+    private fun sendBrowserBack() {
+        val plugin = KdeConnect.getInstance().getDevicePlugin<MousePadPlugin>(deviceId)
+        if (plugin == null) {
+            finish()
+            return
+        }
+        plugin.sendBrowserBack()
+    }
+
+    private fun sendBrowserForward() {
+        val plugin = KdeConnect.getInstance().getDevicePlugin<MousePadPlugin>(deviceId)
+        if (plugin == null) {
+            finish()
+            return
+        }
+        plugin.sendBrowserForward()
     }
 
     private fun sendRightClick() {

@@ -178,6 +178,20 @@ class MousePadPlugin : Plugin() {
         device.sendPacket(np)
     }
 
+    fun sendBrowserBack() {
+        val np = NetworkPacket(PACKET_TYPE_MOUSEPAD_REQUEST)
+        np["alt"] = true
+        np["specialKey"] = KeyListenerView.SpecialKeysMap.get(KeyEvent.KEYCODE_DPAD_LEFT)
+        sendPacket(np)
+    }
+
+    fun sendBrowserForward() {
+        val np = NetworkPacket(PACKET_TYPE_MOUSEPAD_REQUEST)
+        np["alt"] = true
+        np["specialKey"] = KeyListenerView.SpecialKeysMap.get(KeyEvent.KEYCODE_DPAD_RIGHT)
+        sendPacket(np)
+    }
+
     fun sendText(content: String) {
         val np = NetworkPacket(PACKET_TYPE_MOUSEPAD_REQUEST)
         np["key"] = content
