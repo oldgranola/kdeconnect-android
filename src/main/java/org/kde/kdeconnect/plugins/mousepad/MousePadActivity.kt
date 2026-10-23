@@ -143,6 +143,8 @@ class MousePadActivity :
         binding.mouseClickRight.setOnClickListener { sendRightClick() }
         binding.browserBack.setOnClickListener { sendBrowserBack() }
         binding.browserForward.setOnClickListener { sendBrowserForward() }
+        binding.sendEscape.setOnClickListener { sendEscape() }
+        binding.sendFullscreen.setOnClickListener { sendFullscreen() }
 
         deviceId = intent.getStringExtra(EXTRA_DEVICE_ID) ?: ""
         if (deviceId.isEmpty()) {
@@ -530,6 +532,24 @@ class MousePadActivity :
             return
         }
         plugin.sendBrowserForward()
+    }
+
+    private fun sendEscape() {
+        val plugin = KdeConnect.getInstance().getDevicePlugin<MousePadPlugin>(deviceId)
+        if (plugin == null) {
+            finish()
+            return
+        }
+        plugin.sendEscape()
+    }
+
+    private fun sendFullscreen() {
+        val plugin = KdeConnect.getInstance().getDevicePlugin<MousePadPlugin>(deviceId)
+        if (plugin == null) {
+            finish()
+            return
+        }
+        plugin.sendFullscreen()
     }
 
     private fun sendRightClick() {

@@ -47,9 +47,46 @@ SPDX-License-Identifier: GPL-2.0-only OR GPL-3.0-only OR LicenseRef-KDE-Accepted
         <LinearLayout
                 android:id="@+id/mouse_buttons"
                 android:layout_width="match_parent"
-                android:layout_height="70dp"
-                android:orientation="horizontal"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
                 android:layout_alignParentBottom="true">
+
+        <LinearLayout
+                android:id="@+id/key_buttons"
+                android:layout_width="match_parent"
+                android:layout_height="52dp"
+                android:orientation="horizontal"
+                android:gravity="center">
+
+            <com.google.android.material.button.MaterialButton
+                    android:id="@+id/send_escape"
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:minWidth="80dp"
+                    android:layout_marginEnd="8dp"
+                    android:text="Esc"
+                    android:contentDescription="@string/send_escape"
+                    app:cornerRadius="12dp"
+                    style="@style/Widget.Material3.Button.TonalButton" />
+
+            <com.google.android.material.button.MaterialButton
+                    android:id="@+id/send_fullscreen"
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:minWidth="80dp"
+                    android:layout_marginStart="8dp"
+                    android:text="F11"
+                    android:contentDescription="@string/send_fullscreen"
+                    app:cornerRadius="12dp"
+                    style="@style/Widget.Material3.Button.TonalButton" />
+
+        </LinearLayout>
+
+        <LinearLayout
+                android:id="@+id/mouse_buttons_row"
+                android:layout_width="match_parent"
+                android:layout_height="70dp"
+                android:orientation="horizontal">
 
             <com.google.android.material.button.MaterialButton
                     android:id="@+id/browser_back"
@@ -95,6 +132,7 @@ SPDX-License-Identifier: GPL-2.0-only OR GPL-3.0-only OR LicenseRef-KDE-Accepted
                     app:icon="@drawable/ic_arrow_forward_black_24dp"
                     style="@style/KdeConnectButton.IconButton.Secondary" />
 
+        </LinearLayout>
         </LinearLayout>
     </RelativeLayout>
 </androidx.coordinatorlayout.widget.CoordinatorLayout>
