@@ -145,6 +145,9 @@ class MousePadActivity :
         binding.browserForward.setOnClickListener { sendBrowserForward() }
         binding.sendEscape.setOnClickListener { sendEscape() }
         binding.sendFullscreen.setOnClickListener { sendFullscreen() }
+        binding.zoomIn.setOnClickListener { sendZoom { it.sendZoomIn() } }
+        binding.zoomOut.setOnClickListener { sendZoom { it.sendZoomOut() } }
+        binding.zoomToggle.setOnClickListener { sendZoom { it.sendZoomToggle() } }
 
         deviceId = intent.getStringExtra(EXTRA_DEVICE_ID) ?: ""
         if (deviceId.isEmpty()) {
@@ -550,6 +553,15 @@ class MousePadActivity :
             return
         }
         plugin.sendFullscreen()
+    }
+
+    private fun sendZoom(action: (MousePadPlugin) -> Unit) {
+        val plugin = KdeConnect.getInstance().getDevicePlugin<MousePadPlugin>(deviceId)
+        if (plugin == null) {
+            finish()
+            return
+        }
+        action(plugin)
     }
 
     private fun sendRightClick() {

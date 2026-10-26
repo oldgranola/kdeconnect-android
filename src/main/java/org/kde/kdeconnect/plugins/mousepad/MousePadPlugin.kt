@@ -204,6 +204,18 @@ class MousePadPlugin : Plugin() {
         sendPacket(np)
     }
 
+    fun sendZoomIn() = sendAltSuperKey("=")
+    fun sendZoomOut() = sendAltSuperKey("-")
+    fun sendZoomToggle() = sendAltSuperKey("8")
+
+    private fun sendAltSuperKey(key: String) {
+        val np = NetworkPacket(PACKET_TYPE_MOUSEPAD_REQUEST)
+        np["alt"] = true
+        np["super"] = true
+        np["key"] = key
+        sendPacket(np)
+    }
+
     fun sendText(content: String) {
         val np = NetworkPacket(PACKET_TYPE_MOUSEPAD_REQUEST)
         np["key"] = content
