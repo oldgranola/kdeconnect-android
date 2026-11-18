@@ -8,6 +8,7 @@ package org.kde.kdeconnect.plugins.mpris
 import android.content.Context
 import android.graphics.Bitmap
 import android.net.ConnectivityManager
+import android.os.SystemClock
 import android.util.Log
 import androidx.collection.LruCache
 import androidx.core.content.getSystemService
@@ -35,6 +36,7 @@ import kotlinx.coroutines.launch
 import okio.Path.Companion.toOkioPath
 import okio.source
 import org.kde.kdeconnect.NetworkPacket.Payload
+import org.kde.kdeconnect.plugins.mpris.AlbumArtCache.DEVICE_FETCH_SCHEMES
 import java.io.File
 import java.io.IOException
 import java.util.concurrent.ConcurrentHashMap
@@ -57,6 +59,16 @@ internal object AlbumArtCache {
     private val pendingUrls: MutableSet<String> = ConcurrentHashMap.newKeySet()
 
     /**
+     * Urls we asked the connected device to transfer, with the time we asked, so we don't ask again while waiting.
+     */
+    private val requestedTransfers = ConcurrentHashMap<String, Long>()
+
+    /**
+     * After this long without an answer, we ask the connected device to transfer the art again.
+     */
+    private const val TRANSFER_REQUEST_TIMEOUT_MS = 30_000L
+
+    /**
      * Loads album art from http(s) or from the disk cache (for art transferred from the device).
      * Its memory cache holds at most 16 MB of uncompressed bitmaps, and its disk cache at most 12 MB of image files.
      */
@@ -74,7 +86,7 @@ internal object AlbumArtCache {
      */
     private val registeredPlugins = CopyOnWriteArrayList<MprisPlugin>()
 
-    val ALLOWED_SCHEMES = listOf("http", "https", "file", "kdeconnect")
+    val ALLOWED_SCHEMES = listOf("http", "https", "file", "kdeconnect", "data")
 
     /**
      * A list of art url schemes that require a transfer from the connected device.
@@ -92,7 +104,7 @@ internal object AlbumArtCache {
     fun initializeDiskCache(context: Context) {
         if (this::imageLoader.isInitialized) return
         appContext = context.applicationContext
-        connectivityManager = appContext.getSystemService()!!
+        connectivityManager = appContext.getSystemService<ConnectivityManager>()!!
         imageLoader = ImageLoader.Builder(appContext)
             .memoryCache {
                 MemoryCache.Builder()
@@ -126,7 +138,7 @@ internal object AlbumArtCache {
      *
      * @param mpris The mpris plugin
      */
-    fun deregisterPlugin(mpris: MprisPlugin?) {
+    fun deregisterPlugin(mpris: MprisPlugin) {
         registeredPlugins.remove(mpris)
     }
 
@@ -138,14 +150,13 @@ internal object AlbumArtCache {
      * @param albumUrl The album art url
      * @return A bitmap for the album art. Can be null if not (yet) found
      */
-    fun getAlbumArt(albumUrl: String?, plugin: MprisPlugin, player: String?): Bitmap? {
+    fun getAlbumArt(albumUrl: String, plugin: MprisPlugin, player: String): Bitmap? {
         // If the url is invalid, return "no album art"
-        if (albumUrl.isNullOrEmpty()) {
+        if (albumUrl.isEmpty()) {
             return null
         }
         val url = albumUrl.toUri()
 
-        // We currently only support http(s), file, and kdeconnect urls
         if (url.scheme !in ALLOWED_SCHEMES) {
             return null
         }
@@ -170,8 +181,19 @@ internal object AlbumArtCache {
         val fromDevice = url.scheme in DEVICE_FETCH_SCHEMES
         if (fromDevice && !isInDiskCache(albumUrl)) {
             // Special-case file or kdeconnect, since we need to fetch it from the connected device
-            if (!plugin.askTransferAlbumArt(albumUrl, player)) {
+            val now = SystemClock.elapsedRealtime()
+            var shouldAsk = false
+            requestedTransfers.compute(albumUrl) { _, askedAt ->
+                if (askedAt != null && now - askedAt < TRANSFER_REQUEST_TIMEOUT_MS) {
+                    askedAt // Already waiting for it
+                } else {
+                    shouldAsk = true
+                    now
+                }
+            }
+            if (shouldAsk && !plugin.askTransferAlbumArt(albumUrl, player)) {
                 // It doesn't support transferring the art, so mark it as failed
+                requestedTransfers.remove(albumUrl)
                 failedUrls.put(albumUrl, true)
             }
             return null
@@ -201,9 +223,11 @@ internal object AlbumArtCache {
      * @param fromDevice Whether the art was transferred from the connected device, so it can only come from the disk cache
      */
     private fun load(albumUrl: String, fromDevice: Boolean) {
+        // Embedded images in a data: url need no download nor disk cache
+        val isDataUrl = albumUrl.startsWith("data:")
         // Only download art on unmetered networks (wifi etc.), but still use what's in the disk cache
         val metered = ConnectivityManagerCompat.isActiveNetworkMetered(connectivityManager)
-        if (!fromDevice && metered && !isInDiskCache(albumUrl)) {
+        if (!fromDevice && !isDataUrl && metered && !isInDiskCache(albumUrl)) {
             // Not a failure, it will be downloaded once we are on an unmetered network
             return
         }
@@ -216,6 +240,7 @@ internal object AlbumArtCache {
             .memoryCacheKey(albumUrl)
             .diskCacheKey(albumUrl)
             .networkCachePolicy(if (metered) CachePolicy.DISABLED else CachePolicy.ENABLED)
+            .diskCachePolicy(if (isDataUrl) CachePolicy.DISABLED else CachePolicy.ENABLED)
             // The bitmaps get passed to the media session and notifications
             .allowHardware(false)
             // Downscale big images (we don't need more for the notification or the now playing screen), never upscale
@@ -272,7 +297,10 @@ internal object AlbumArtCache {
         }
 
         // Check if we already have this art, or are already fetching it
-        if (getFromMemoryCache(albumUrl) != null || isInDiskCache(albumUrl) || !pendingUrls.add(albumUrl)) {
+        val alreadyHandled = getFromMemoryCache(albumUrl) != null || isInDiskCache(albumUrl) || !pendingUrls.add(albumUrl)
+        // We got an answer, and from now on pendingUrls prevents asking again
+        requestedTransfers.remove(albumUrl)
+        if (alreadyHandled) {
             payload.close()
             return
         }

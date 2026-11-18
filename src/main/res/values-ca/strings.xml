@@ -237,7 +237,6 @@
   <string name="share_destination_folder_preference">Directori de destinació</string>
   <string name="share">Comparteix</string>
   <string name="share_received_file">Comparteix «%s»</string>
-  <string name="title_activity_notification_filter">Filtre de notificacions</string>
   <string name="filter_apps_info">Les notificacions se sincronitzaran per a les aplicacions seleccionades.</string>
   <string name="show_notification_if_screen_off">Envia les notificacions només si la pantalla està apagada</string>
   <string name="add_device_dialog_title">Afegeix un dispositiu</string>
@@ -256,6 +255,7 @@
   <string name="sftp_saf_permission_explanation">Per a accedir remotament als fitxers cal configurar les ubicacions d\'emmagatzematge</string>
   <string name="sftp_manage_storage_permission_explanation">Per a permetre l\'accés remot als fitxers d\'aquest dispositiu, haureu de permetre que el KDE Connect gestioni l\'emmagatzematge.</string>
   <string name="sftp_missing_permission_error">Permisos que manquen: accés al sistema de fitxers</string>
+  <string name="sftp_could_not_determine_ip">No s\'ha pogut determinar l\'adreça IP local</string>
   <string name="no_players_connected">No s\'ha trobat cap reproductor</string>
   <string name="send_files">Envia fitxers</string>
   <string name="use_digitizer">Ús com a tauleta de dibuix</string>
@@ -279,6 +279,7 @@
   <string name="device_rename_confirm">Reanomena</string>
   <string name="refresh">Actualitza</string>
   <string name="unreachable_description">Aquest dispositiu aparellat no és accessible. Assegureu-vos que està connectat a la mateixa xarxa.</string>
+  <string name="unreachable_unpaired_description">No es pot accedir al dispositiu i no està aparellat</string>
   <string name="no_wifi">No esteu connectat a una xarxa Wi-Fi, per tant, no podreu veure cap dispositiu. Feu clic aquí per a activar la Wi-Fi.</string>
   <string name="on_non_trusted_message">No és una xarxa de confiança: el descobriment automàtic està desactivat.</string>
   <string name="no_file_browser">No hi ha instal·lat cap navegador de fitxers.</string>
@@ -312,6 +313,10 @@
   <string name="settings_icon_description">Icona d\'arranjament</string>
   <string name="presenter_fullscreen">Pantalla completa</string>
   <string name="presenter_exit">Surt de la presentació</string>
+  <string name="presenter_change_zoom">Canvia el zoom</string>
+  <string name="presenter_zoom">Zoom</string>
+  <string name="presenter_zoom_in">Amplia</string>
+  <string name="presenter_zoom_out">Allunya</string>
   <string name="presenter_lock_tip">Podeu bloquejar el dispositiu i emprar les tecles de volum per a anar a la diapositiva anterior/següent</string>
   <string name="add_command">Afegeix una ordre</string>
   <string name="addcommand_explanation">No hi ha cap ordre registrada</string>

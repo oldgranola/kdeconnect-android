@@ -253,7 +253,6 @@
   <string name="share_destination_folder_preference">Ciljni imenik</string>
   <string name="share">Deli</string>
   <string name="share_received_file">Deli \"%s\"</string>
-  <string name="title_activity_notification_filter">Filter obvestil</string>
   <string name="filter_apps_info">Obvestila bodo usklajena za izbrane aplikacije.</string>
   <string name="show_notification_if_screen_off">Pošlji obvestila le, če je zaslon izključen</string>
   <string name="add_device_dialog_title">Dodaj napravo</string>
@@ -272,6 +271,7 @@
   <string name="sftp_saf_permission_explanation">Za dostop do datotek na daljavo morate nastaviti lokacije za shranjevanje</string>
   <string name="sftp_manage_storage_permission_explanation">Da bi dovolili oddaljeni dostop do datotek na tej napravi, morate dovoliti, da KDE Connect upravlja s hrambo.</string>
   <string name="sftp_missing_permission_error">Manjkajoča dovoljenja: dostop do datotečnega sistema</string>
+  <string name="sftp_could_not_determine_ip">Ni bilo mogoče določiti lokalnega IP naslova</string>
   <string name="no_players_connected">Ni najdenih predvajalnikov</string>
   <string name="send_files">Pošlji datoteke</string>
   <string name="use_digitizer">Uporabi kot risalno tablico</string>
@@ -295,6 +295,7 @@
   <string name="device_rename_confirm">Preimenuj</string>
   <string name="refresh">Osveži</string>
   <string name="unreachable_description">Ta uparjena naprava ni dosegljiva. Prepričajte se, da je povezana v isto omrežje.</string>
+  <string name="unreachable_unpaired_description">Naprava ni dosegljiva in ni uparjena</string>
   <string name="no_wifi">Niste povezani z omrežjem Wi-Fi, zato morda ne boste mogli videti nobene naprave. Kliknite tukaj, če želite omogočiti Wi-Fi.</string>
   <string name="on_non_trusted_message">Ni v zaupanja vrednem omrežju: samodejno odkrivanje je onemogočeno.</string>
   <string name="no_file_browser">Ni nameščenega nobenega brskalnika datotek.</string>
@@ -328,6 +329,10 @@
   <string name="settings_icon_description">Ikona nastavitev</string>
   <string name="presenter_fullscreen">Polni zaslon</string>
   <string name="presenter_exit">Izhod iz predstavitve</string>
+  <string name="presenter_change_zoom">Spremeni povečavo</string>
+  <string name="presenter_zoom">Povečava</string>
+  <string name="presenter_zoom_in">Povečaj</string>
+  <string name="presenter_zoom_out">Pomanjšaj</string>
   <string name="presenter_lock_tip">Napravo lahko zaklenete in s tipkami za glasnost prehajate na prejšnjo/naslednjo sliko</string>
   <string name="add_command">Dodaj ukaz</string>
   <string name="addcommand_explanation">Nobenih ukazov ni registriranih</string>
