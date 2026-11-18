@@ -3,7 +3,6 @@ import com.android.build.api.instrumentation.ClassContext
 import com.android.build.api.instrumentation.ClassData
 import com.android.build.api.instrumentation.InstrumentationParameters
 import com.android.build.api.instrumentation.InstrumentationScope
-import com.github.jk1.license.LicenseReportExtension
 import com.github.jk1.license.render.ReportRenderer
 import com.github.jk1.license.render.TextReportRenderer
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
@@ -42,8 +41,8 @@ android {
         applicationId = "org.kde.kdeconnect_tp"
         minSdk = 23
         targetSdk = 37
-        versionCode = 13691
-        versionName = "1.37.0 Beta 2"
+        versionCode = 13703
+        versionName = "1.37.3"
         proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
     }
     buildFeatures {
@@ -318,7 +317,9 @@ dependencies {
     testImplementation(libs.mockk)
     testImplementation(libs.slf4j.simple) // do not try to use the Android logger backend in tests
     testImplementation(libs.jsonassert)
-    testImplementation(libs.robolectric)
+    testImplementation(libs.robolectric) {
+        exclude(group = "org.robolectric", module = "nativeruntime-dist-compat")
+    }
     testImplementation(libs.androidx.junit)
 
     // For device controls
@@ -327,7 +328,7 @@ dependencies {
 }
 
 licenseReport {
-    configurations = LicenseReportExtension.ALL
+    configurations = arrayOf("releaseRuntimeClasspath", "coreLibraryDesugaring")
     renderers = arrayOf<ReportRenderer>(TextReportRenderer())
 }
 

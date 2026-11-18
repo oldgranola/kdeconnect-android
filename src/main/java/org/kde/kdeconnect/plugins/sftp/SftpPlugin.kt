@@ -225,9 +225,9 @@ class SftpPlugin : Plugin(), OnSharedPreferenceChangeListener {
 
     override val outgoingPacketTypes: Array<String> = arrayOf(PACKET_TYPE_SFTP)
 
-    override fun hasSettings(): Boolean = !SimpleSftpServer.SUPPORTS_NATIVEFS
+    override val hasSettings: Boolean = !SimpleSftpServer.SUPPORTS_NATIVEFS
 
-    override fun supportsDeviceSpecificSettings(): Boolean = true
+    override val settingsScope = SettingsScope.PER_DEVICE
 
     override fun getSettingsFragment(activity: Activity): PluginSettingsFragment {
         return SftpSettingsFragment.newInstance(pluginKey, device.deviceId, R.xml.sftpplugin_preferences)

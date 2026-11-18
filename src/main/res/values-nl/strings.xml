@@ -237,7 +237,6 @@
   <string name="share_destination_folder_preference">Bestemmingsmap</string>
   <string name="share">Delen</string>
   <string name="share_received_file">\"%s\" delen</string>
-  <string name="title_activity_notification_filter">Filter voor meldingen</string>
   <string name="filter_apps_info">Meldingen zullen gesynchroniseerd worden voor de geselecteerde apps.</string>
   <string name="show_notification_if_screen_off">Meldingen alleen sturen als het scherm uit staat</string>
   <string name="add_device_dialog_title">Apparaat toevoegen</string>
@@ -256,6 +255,7 @@
   <string name="sftp_saf_permission_explanation">Om toegang te hebben tot bestanden op afstand moet u opslaglocaties configureren</string>
   <string name="sftp_manage_storage_permission_explanation">Om toegang tot bestanden op dit apparaat toe te staan moet u toestaan dat KDE Connect de opslag mag beheren.</string>
   <string name="sftp_missing_permission_error">Toegangsrechten ontbreken: toegang tot bestandssysteem</string>
+  <string name="sftp_could_not_determine_ip">Kon lokaal IP-adres niet bepalen</string>
   <string name="no_players_connected">Geen spelers gevonden</string>
   <string name="send_files">Bestanden verzenden</string>
   <string name="use_digitizer">Gebruiken als tekentablet</string>
@@ -279,6 +279,7 @@
   <string name="device_rename_confirm">Hernoemen</string>
   <string name="refresh">Vernieuwen</string>
   <string name="unreachable_description">Dit gepaarde apparaat is niet bereikbaar. Ga na dat het is verbonden met uw zelfde netwerk.</string>
+  <string name="unreachable_unpaired_description">Apparaat is niet bereikbaar en niet gepaard</string>
   <string name="no_wifi">U bent niet verbonden met een Wi-Fi-netwerk, u zou dus niet in staat kunnen zijn om apparaten te zien. Klik hier om Wi-Fi in te schakelen.</string>
   <string name="on_non_trusted_message">Niet op een vertrouwd netwerk: automatisch ontdekken is uitgeschakeld.</string>
   <string name="no_file_browser">Er zijn geen bestandsbrowsers geïnstalleerd.</string>
@@ -312,6 +313,10 @@
   <string name="settings_icon_description">Pictogram voor instellingen</string>
   <string name="presenter_fullscreen">Volledig scherm</string>
   <string name="presenter_exit">Presentatie beëindigen</string>
+  <string name="presenter_change_zoom">Zoom wijzigen</string>
+  <string name="presenter_zoom">Zoomen</string>
+  <string name="presenter_zoom_in">Inzoomen</string>
+  <string name="presenter_zoom_out">Uitzoomen</string>
   <string name="presenter_lock_tip">U kunt uw apparaat vergrendelen en de volumetoetsen gebruiken om naar de vorige/volgende dia te gaan</string>
   <string name="add_command">Een commando toevoegen</string>
   <string name="addcommand_explanation">Er zijn geen commando\'s geregistreerd</string>

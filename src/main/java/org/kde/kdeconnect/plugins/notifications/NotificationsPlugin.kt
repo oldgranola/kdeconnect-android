@@ -12,7 +12,6 @@ import android.app.PendingIntent
 import android.app.RemoteInput
 import android.content.Context
 import android.content.Intent
-import android.content.SharedPreferences
 import android.content.pm.PackageManager
 import android.content.res.Resources
 import android.graphics.Bitmap
@@ -28,6 +27,7 @@ import android.service.notification.StatusBarNotification
 import android.text.TextUtils
 import android.util.Log
 import androidx.core.app.NotificationCompat
+import androidx.core.content.getSystemService
 import androidx.core.graphics.createBitmap
 import androidx.fragment.app.DialogFragment
 import kotlinx.serialization.json.JsonArray
@@ -45,6 +45,7 @@ import org.kde.kdeconnect_tp.R
 import java.io.ByteArrayOutputStream
 import java.security.MessageDigest
 import java.util.Locale
+import java.util.concurrent.atomic.AtomicBoolean
 
 @LoadablePlugin
 class NotificationsPlugin : Plugin(), NotificationReceiver.NotificationListener {
@@ -55,8 +56,10 @@ class NotificationsPlugin : Plugin(), NotificationReceiver.NotificationListener 
     private val postedNotifications = HashSet<String>()
     private val pendingIntents = HashMap<String, RepliableNotification>()
     private val pendingActions = mutableMapOf<String, MutableList<Notification.Action>>()
+    @Volatile
     private var serviceReady = false
-    private lateinit var sharedPreferences: SharedPreferences
+    // Set when the remote asked for the current notifications before the listener service was ready
+    private val pendingRequest = AtomicBoolean(false)
     private lateinit var keyguardManager: KeyguardManager
     private lateinit var mainHandler: Handler
     private val postedNotificationsLock = Any()
@@ -67,13 +70,10 @@ class NotificationsPlugin : Plugin(), NotificationReceiver.NotificationListener 
     override val description: String
         get() = context.getString(R.string.pref_plugin_notifications_desc)
 
-    override fun hasSettings(): Boolean = true
+    override val hasSettings: Boolean = true
 
-    override fun getSettingsFragment(activity: Activity): PluginSettingsFragment? {
-        val intent = Intent(activity, NotificationFilterActivity::class.java)
-        intent.putExtra(PREFERENCE_KEY, this.sharedPreferencesName)
-        activity.startActivity(intent)
-        return null
+    override fun getSettingsFragment(activity: Activity): PluginSettingsFragment {
+        return NotificationsSettingsFragment.newInstance(pluginKey, device.deviceId)
     }
 
     override fun checkRequiredPermissions(): Boolean {
@@ -82,12 +82,10 @@ class NotificationsPlugin : Plugin(), NotificationReceiver.NotificationListener 
 
     override fun onCreate() {
         appDatabase = AppDatabase.getInstance(context)
-        sharedPreferences = context.getSharedPreferences(sharedPreferencesName, Context.MODE_PRIVATE)
-        keyguardManager = context.getSystemService(Context.KEYGUARD_SERVICE) as KeyguardManager
+        keyguardManager = context.getSystemService<KeyguardManager>()!!
         mainHandler = Handler(Looper.getMainLooper())
         NotificationReceiver.RunCommand(context) { service ->
             service.addListener(this@NotificationsPlugin)
-            serviceReady = service.isConnected
         }
     }
 
@@ -109,8 +107,11 @@ class NotificationsPlugin : Plugin(), NotificationReceiver.NotificationListener 
 
     override fun onListenerConnected(service: NotificationReceiver) {
         serviceReady = true
-        NotificationReceiver.RunCommand(context) { service ->
-            this.sendCurrentNotifications(service)
+        // Current notifications are only sent in response to a request from the remote device
+        if (pendingRequest.getAndSet(false)) {
+            NotificationReceiver.RunCommand(context) { service ->
+                this.sendCurrentNotifications(service)
+            }
         }
     }
 
@@ -143,14 +144,13 @@ class NotificationsPlugin : Plugin(), NotificationReceiver.NotificationListener 
             postedNotifications.add(key)
         }
 
-        val sendOnlyIfLocked = sharedPreferences.getBoolean(PREF_NOTIFICATION_SCREEN_OFF, false)
-        val isLocked = keyguardManager.isKeyguardLocked
-        if (!sendOnlyIfLocked || isLocked) {
-            sendNotificationWithDelay(statusBarNotification)
-        }
+        // If the user only wants to be alerted while the phone is locked, still send the notification but as silent
+        val alertOnlyIfLocked = preferences.getBoolean(context.getString(R.string.pref_notification_screen_off_key), false)
+        val silent = alertOnlyIfLocked && !keyguardManager.isKeyguardLocked
+        sendNotificationWithDelay(statusBarNotification, silent)
     }
 
-    private fun sendNotificationWithDelay(statusBarNotification: StatusBarNotification) {
+    private fun sendNotificationWithDelay(statusBarNotification: StatusBarNotification, silent: Boolean) {
         val key = getNotificationKeyCompat(statusBarNotification)
         synchronized(postedNotificationsLock) {
             cancelDelayedNotification(key)
@@ -163,7 +163,7 @@ class NotificationsPlugin : Plugin(), NotificationReceiver.NotificationListener 
                         return@Runnable
                     }
                 }
-                sendNotification(statusBarNotification, false)
+                sendNotification(statusBarNotification, silent)
             })
             delayedNotification.obj = key
             mainHandler.sendMessageDelayed(delayedNotification, NOTIFICATION_SYNC_DELAY_MS)
@@ -174,11 +174,11 @@ class NotificationsPlugin : Plugin(), NotificationReceiver.NotificationListener 
         mainHandler.removeCallbacksAndMessages(key)
     }
 
-    // isPreexisting is true for notifications that we are sending in response to a request command
-    // and that we want to send with the "silent" flag set
+    // silent is true for notifications that shouldn't alert the user on the other end, eg: preexisting notifications
+    // that we are sending in response to a request command, or new ones while the screen is on if the user asked so
     private fun sendNotification(
         statusBarNotification: StatusBarNotification,
-        isPreexisting: Boolean
+        silent: Boolean
     ) {
         val notification = statusBarNotification.notification
 
@@ -258,12 +258,16 @@ class NotificationsPlugin : Plugin(), NotificationReceiver.NotificationListener 
 
         np["actions"] = extractActions(notification, key)
 
-        val onlyAlertOnce = (notification.flags and Notification.FLAG_ONLY_ALERT_ONCE) != 0
+        // Some apps ask to notify the user only once they are posted and not for updates, but (for some reason),
+        // some messaging apps also set that flag, and we should notify the user for every new message (since they
+        // just update the notification), so ignore their ask.
+        val isSilent = silent || (isUpdate && (notification.flags and Notification.FLAG_ONLY_ALERT_ONCE) != 0 && !isConversation)
+
         np["id"] = key
         np["isClearable"] = statusBarNotification.isClearable
         np["appName"] = appNameLookup(context, packageName)
         np["time"] = statusBarNotification.postTime.toString()
-        np["silent"] = isPreexisting || (isUpdate && onlyAlertOnce)
+        np["silent"] = isSilent
 
         if (!appDatabase.getPrivacy(packageName, AppDatabase.PrivacyOptions.BLOCK_CONTENTS)) {
             val rn = extractRepliableNotification(statusBarNotification)
@@ -368,6 +372,10 @@ class NotificationsPlugin : Plugin(), NotificationReceiver.NotificationListener 
             for (action in notiActions) {
                 val title = action.title
                     ?: continue
+
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && action.actionIntent?.isActivity == true) {
+                    continue
+                }
 
                 // Check whether it is a reply action. We have special treatment for them
                 if (action.remoteInputs?.isNotEmpty() == true) {
@@ -521,7 +529,9 @@ class NotificationsPlugin : Plugin(), NotificationReceiver.NotificationListener 
                 }
             }
         } else if (np.getBoolean("request")) {
-            if (serviceReady) {
+            // Set the flag first so that either this or onListenerConnected sends, never neither
+            pendingRequest.set(true)
+            if (serviceReady && pendingRequest.getAndSet(false)) {
                 NotificationReceiver.RunCommand(context) { service ->
                     this.sendCurrentNotifications(service)
                 }
@@ -567,8 +577,6 @@ class NotificationsPlugin : Plugin(), NotificationReceiver.NotificationListener 
         private const val PACKET_TYPE_NOTIFICATION_REQUEST = "kdeconnect.notification.request"
         private const val PACKET_TYPE_NOTIFICATION_REPLY = "kdeconnect.notification.reply"
         private const val PACKET_TYPE_NOTIFICATION_ACTION = "kdeconnect.notification.action"
-        const val PREFERENCE_KEY = "prefKey"
-        const val PREF_NOTIFICATION_SCREEN_OFF = "pref_notification_screen_off"
         private const val NOTIFICATION_SYNC_DELAY_MS = 50L
 
         private const val TAG = "KDE/NotificationsPlugin"

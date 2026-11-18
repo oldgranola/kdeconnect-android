@@ -19,10 +19,10 @@ import android.os.Build
 import android.os.PowerManager
 import android.os.SystemClock
 import android.provider.Settings
+import android.util.Log
 import androidx.core.app.NotificationCompat
-import androidx.core.content.ContextCompat
+import androidx.core.content.getSystemService
 import androidx.core.net.toUri
-import androidx.preference.PreferenceManager
 import org.kde.kdeconnect.DeviceType
 import org.kde.kdeconnect.NetworkPacket
 import org.kde.kdeconnect.helpers.DeviceHelper
@@ -57,31 +57,47 @@ class FindMyPhonePlugin : Plugin() {
         get() = context.getString(R.string.findmyphone_description)
 
     override fun onCreate() {
-        notificationManager = ContextCompat.getSystemService(context, NotificationManager::class.java)!!
-        audioManager = ContextCompat.getSystemService(context, AudioManager::class.java)!!
-        powerManager = ContextCompat.getSystemService(context, PowerManager::class.java)!!
+        notificationManager = context.getSystemService<NotificationManager>()!!
+        audioManager = context.getSystemService<AudioManager>()!!
+        powerManager = context.getSystemService<PowerManager>()!!
         flashlightManager = FlashlightManager(context)
 
-        val prefs = PreferenceManager.getDefaultSharedPreferences(context)
-        val ringtoneString = prefs.getString(context.getString(R.string.findmyphone_preference_key_ringtone), "")
-        val ringtone: Uri = if (ringtoneString.isNullOrEmpty()) {
-            Settings.System.DEFAULT_RINGTONE_URI
-        } else {
-            ringtoneString.toUri()
-        }
+        val ringtoneString = preferences.getString(context.getString(R.string.findmyphone_preference_key_ringtone), "")
 
-        mediaPlayer = MediaPlayer()
-        mediaPlayer?.apply {
-            setDataSource(context, ringtone)
-            val audioAttributes = AudioAttributes.Builder()
-                .setUsage(AudioAttributes.USAGE_ALARM)
-                .setContentType(AudioAttributes.CONTENT_TYPE_UNKNOWN)
-                .build()
-            @Suppress("DEPRECATION")
-            setWakeMode(context, PowerManager.SCREEN_DIM_WAKE_LOCK)
-            setAudioAttributes(audioAttributes)
-            isLooping = true
-            prepare()
+        // The chosen sound may not be playable (e.g. it was deleted, or the system default
+        // ringtone is set to "None"), so fall back to other system sounds.
+        val ringtoneCandidates = listOfNotNull(
+            ringtoneString?.takeIf { it.isNotEmpty() }?.toUri(),
+            Settings.System.DEFAULT_RINGTONE_URI,
+            Settings.System.DEFAULT_ALARM_ALERT_URI,
+            Settings.System.DEFAULT_NOTIFICATION_URI,
+        ).distinct()
+
+        mediaPlayer = ringtoneCandidates.firstNotNullOfOrNull { createMediaPlayer(it) }
+        if (mediaPlayer == null) {
+            Log.e(LOG_TAG, "No playable ringtone found, FindMyPhone will not play a sound")
+        }
+    }
+
+    private fun createMediaPlayer(ringtone: Uri): MediaPlayer? {
+        val player = MediaPlayer()
+        return try {
+            player.apply {
+                setDataSource(context, ringtone)
+                val audioAttributes = AudioAttributes.Builder()
+                    .setUsage(AudioAttributes.USAGE_ALARM)
+                    .setContentType(AudioAttributes.CONTENT_TYPE_UNKNOWN)
+                    .build()
+                @Suppress("DEPRECATION")
+                setWakeMode(context, PowerManager.SCREEN_DIM_WAKE_LOCK)
+                setAudioAttributes(audioAttributes)
+                isLooping = true
+                prepare()
+            }
+        } catch (e: Exception) {
+            Log.w(LOG_TAG, "Could not use ringtone $ringtone", e)
+            player.release()
+            null
         }
     }
 
@@ -149,6 +165,7 @@ class FindMyPhonePlugin : Plugin() {
             .setSmallIcon(R.drawable.ic_notification)
             .setOngoing(true)
             .setFullScreenIntent(pendingIntent, true)
+            .setDeleteIntent(pendingIntent)
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setAutoCancel(true)
             .setContentTitle(context.getString(R.string.findmyphone_found))
@@ -198,13 +215,14 @@ class FindMyPhonePlugin : Plugin() {
 
     override val outgoingPacketTypes: Array<String> = emptyArray()
 
-    override fun hasSettings(): Boolean = true
+    override val hasSettings: Boolean = true
+
+    override val settingsScope = SettingsScope.APP_WIDE
 
     override fun getSettingsFragment(activity: Activity): PluginSettingsFragment =
         FindMyPhoneSettingsFragment.newInstance(pluginKey, device.deviceId, R.xml.findmyphoneplugin_preferences)
 
-    override val requiredPermissions: Array<String>
-        get() = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+    override val requiredPermissions: Array<String> = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             arrayOf(Manifest.permission.POST_NOTIFICATIONS)
         } else {
             emptyArray()
@@ -213,11 +231,11 @@ class FindMyPhonePlugin : Plugin() {
     override val permissionExplanation: Int = R.string.findmyphone_notifications_explanation
 
     private fun isFlashlightEnabledInSettings(): Boolean {
-        val prefs = PreferenceManager.getDefaultSharedPreferences(context)
-        return prefs.getBoolean(context.getString(R.string.findmyphone_preference_key_flashlight), false)
+        return preferences.getBoolean(context.getString(R.string.findmyphone_preference_key_flashlight), false)
     }
 
     companion object {
         const val PACKET_TYPE_FINDMYPHONE_REQUEST: String = "kdeconnect.findmyphone.request"
+        private const val LOG_TAG = "FindMyPhonePlugin"
     }
 }

@@ -237,7 +237,6 @@
   <string name="share_destination_folder_preference">Dossier de destination</string>
   <string name="share">Partager</string>
   <string name="share_received_file">Partager « %s »</string>
-  <string name="title_activity_notification_filter">Filtre des notifications</string>
   <string name="filter_apps_info">Les notifications seront synchronisées pour les applications sélectionnées.</string>
   <string name="show_notification_if_screen_off">Envoyer des notifications uniquement si l\'écran est éteint.</string>
   <string name="add_device_dialog_title">Ajouter un périphérique</string>
@@ -256,6 +255,7 @@
   <string name="sftp_saf_permission_explanation">Vous devez configurer des emplacements de stockage pour accéder aux fichiers à distance</string>
   <string name="sftp_manage_storage_permission_explanation">Pour permettre l\'accès à distance aux fichiers sur ce périphérique, vous devez autoriser KDEConnect à gérer l\'enregistrement.</string>
   <string name="sftp_missing_permission_error">Autorisations manquantes : accès au système de fichiers</string>
+  <string name="sftp_could_not_determine_ip">Impossible de déterminer l\'adresse IP locale</string>
   <string name="no_players_connected">Aucun lecteur trouvé</string>
   <string name="send_files">Envoyer des fichiers</string>
   <string name="use_digitizer">Utiliser comme une tablette graphique</string>
@@ -312,6 +312,10 @@
   <string name="settings_icon_description">Icône des paramètres</string>
   <string name="presenter_fullscreen">Plein écran</string>
   <string name="presenter_exit">Quitter la présentation</string>
+  <string name="presenter_change_zoom">Modifier le zoom</string>
+  <string name="presenter_zoom">Zoom</string>
+  <string name="presenter_zoom_in">Zoom avant</string>
+  <string name="presenter_zoom_out">Zoom arrière</string>
   <string name="presenter_lock_tip">Vous pouvez verrouiller votre appareil et utiliser les touches de volume pour passer d\'une diapositive à l\'autre</string>
   <string name="add_command">Ajouter une commande</string>
   <string name="addcommand_explanation">Aucune commande enregistrée</string>

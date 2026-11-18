@@ -27,38 +27,28 @@ import org.kde.kdeconnect_tp.R
 
 class RunCommandActivity : AppCompatActivity() {
 
-    val commandList = mutableStateListOf<CommandEntry>()
+    val commandList = mutableStateListOf<CommandInfo>()
 
-    private lateinit var deviceId: String
-
+    private lateinit var plugin: RunCommandPlugin
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         Log.d("RunCommandActivity", "Launched")
-        deviceId = intent.getStringExtra(EXTRA_DEVICE_ID)!!
-        val device = KdeConnect.getInstance().getDevice(deviceId)
-        val plugin = device?.getPlugin<RunCommandPlugin>()
-        if (plugin == null) {
-            finish()
-            return
-        }
+        plugin = KdeConnect.getInstance().getDevicePlugin<RunCommandPlugin>(intent.getStringExtra(EXTRA_DEVICE_ID))
+            ?: return finish()
 
-        for (info in plugin.commandList) {
-            commandList.add(CommandEntry(info))
-        }
-        commandList.sortBy { it.name.lowercase() }
-
+        commandList.addAll(plugin.commandList)
 
         setContent {
             val clipboardManager = LocalClipboard.current
 
             RunCommandScreen(
                 plugin = plugin,
-                device = device,
+                device = plugin.device,
                 commandList = commandList,
                 onBackPressedDispatcher = onBackPressedDispatcher,
                 onCopyUrlToClipboard = {
-                    copyCommandToClipboard(device, it, clipboardManager)
+                    copyCommandToClipboard(plugin.device, it, clipboardManager)
                 },
                 onUpdate = {
                     updateList()
@@ -69,7 +59,7 @@ class RunCommandActivity : AppCompatActivity() {
 
     private fun copyCommandToClipboard(
         device: Device,
-        command: CommandEntry,
+        command: CommandInfo,
         clipboardManager: Clipboard
     ) {
         val url = "kdeconnect://runcommand/${device.deviceId}/${command.key}"
@@ -87,23 +77,8 @@ class RunCommandActivity : AppCompatActivity() {
     }
 
     private fun updateList() {
-        commandList.removeAll(commandList)
-        val plugin = KdeConnect.getInstance().getDevicePlugin<RunCommandPlugin>(deviceId) ?: return
-
-        for (info in plugin.commandList) {
-            commandList.add(CommandEntry(info))
-        }
-        commandList.sortBy { it.name.lowercase() }
-    }
-
-    override fun onResume() {
-        super.onResume()
-        val plugin =
-            KdeConnect.getInstance().getDevicePlugin<RunCommandPlugin>(deviceId)
-        if (plugin == null) {
-            finish()
-            return
-        }
+        commandList.clear()
+        commandList.addAll(plugin.commandList)
     }
 
     companion object {
