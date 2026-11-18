@@ -478,38 +478,18 @@ class MousePadActivity :
     }
 
     private fun sendBrowserBack() {
-        val plugin = KdeConnect.getInstance().getDevicePlugin<MousePadPlugin>(deviceId)
-        if (plugin == null) {
-            finish()
-            return
-        }
         plugin.sendBrowserBack()
     }
 
     private fun sendBrowserForward() {
-        val plugin = KdeConnect.getInstance().getDevicePlugin<MousePadPlugin>(deviceId)
-        if (plugin == null) {
-            finish()
-            return
-        }
         plugin.sendBrowserForward()
     }
 
     private fun sendEscape() {
-        val plugin = KdeConnect.getInstance().getDevicePlugin<MousePadPlugin>(deviceId)
-        if (plugin == null) {
-            finish()
-            return
-        }
         plugin.sendEscape()
     }
 
     private fun sendFullscreen() {
-        val plugin = KdeConnect.getInstance().getDevicePlugin<MousePadPlugin>(deviceId)
-        if (plugin == null) {
-            finish()
-            return
-        }
         plugin.sendFullscreen()
     }
 
