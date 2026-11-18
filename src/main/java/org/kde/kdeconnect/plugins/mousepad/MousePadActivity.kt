@@ -497,11 +497,6 @@ class MousePadActivity :
     }
 
     private fun sendZoom(action: (MousePadPlugin) -> Unit) {
-        val plugin = KdeConnect.getInstance().getDevicePlugin<MousePadPlugin>(deviceId)
-        if (plugin == null) {
-            finish()
-            return
-        }
         action(plugin)
     }
 
