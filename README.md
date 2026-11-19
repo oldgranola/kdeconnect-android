@@ -11,17 +11,22 @@ KDE Connect is a multi-platform app that allows your devices to communicate (eg:
 
 ## Extra Remote input buttons (this fork)
 
+![The extra buttons at the bottom of the Remote input screen](docs/remote-input-buttons.png)
+
+The top row and the two outer buttons of the bottom row are new. The light blue buttons
+(left and right click) and the small middle button (middle click) are standard KDE Connect.
+
 ### What the buttons do
 
-| Button | Keys sent to the PC | Needs PC setup? |
-|---|---|---|
-| Back | Alt+Left | No |
-| Forward | Alt+Right | No |
-| Esc | Escape | No |
-| Full screen | F11 | No |
-| Zoom out | Alt+Super+Minus | Depends on desktop (see below) |
-| Zoom in | Alt+Super+Equals | Depends on desktop (see below) |
-| Lens toggle | Alt+Super+8 | Yes on Cinnamon (see below) |
+| Label on screen | Button | Keys sent to the PC | Needs PC setup? |
+|---|---|---|---|
+| ← | Back | Alt+Left | No |
+| → | Forward | Alt+Right | No |
+| Esc | Escape | Escape | No |
+| F11 | Full screen | F11 | No |
+| Z- | Zoom out | Alt+Super+Minus | Depends on desktop (see below) |
+| Z+ | Zoom in | Alt+Super+Equals | Depends on desktop (see below) |
+| Lens | Lens toggle | Alt+Super+8 | Yes on Cinnamon (see below) |
 
 The Back, Forward, Esc and F11 buttons work with any desktop and need no setup.
 The same four buttons are also offered upstream on the `browser-back-forward` branch.
